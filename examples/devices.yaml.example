@@ -1,0 +1,39 @@
+# RouterOS MCP Server - Device Configuration
+# Copy this file to ~/.config/routeros-mcp/devices.yaml or ./devices.yaml
+
+devices:
+  # Example device configuration
+  - name: router1
+    hostname: 192.168.1.1
+    username: admin
+    password: your-password-here
+    disabled: false
+    fallback_ip: null
+    private_key: null
+
+  # Another example with fallback IP
+  - name: router2
+    hostname: router2.example.com
+    username: admin
+    password: another-password
+    disabled: false
+    fallback_ip: 10.0.0.1  # Used if DNS resolution fails
+    private_key: null
+
+  # Disabled device example
+  - name: old-router
+    hostname: 192.168.1.254
+    username: admin
+    password: old-password
+    disabled: true  # Will not be available via MCP
+    fallback_ip: null
+    private_key: null
+
+# Field descriptions:
+# - name: Unique identifier for the device (used in MCP tool calls)
+# - hostname: IP address or DNS name of the RouterOS device
+# - username: RouterOS username for authentication
+# - password: RouterOS password for authentication
+# - disabled: Set to true to exclude from MCP (default: false)
+# - fallback_ip: Alternative IP if hostname DNS resolution fails (optional)
+# - private_key: SSH private key path for key-based auth (optional, not commonly used)

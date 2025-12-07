@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "routeros": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/routeros-mcp",
+        "run",
+        "routeros-mcp"
+      ],
+      "env": {
+        "ROUTEROS_DEVICES_CONFIG": "/path/to/devices.yaml",
+        "ROUTEROS_LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}

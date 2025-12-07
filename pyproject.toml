@@ -1,0 +1,25 @@
+[project]
+name = "routeros-mcp"
+version = "0.1.0"
+description = "RouterOS MCP server - Model Context Protocol server for MikroTik RouterOS devices"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+dependencies = [
+    "fastmcp>=2.10.6",
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+    "pyyaml>=6.0",
+    "routeros-api>=0.17.0",
+    "paramiko>=3.0.0",
+]
+
+[project.scripts]
+routeros-mcp = "routeros_mcp.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/routeros_mcp"]
