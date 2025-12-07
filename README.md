@@ -18,14 +18,14 @@ A Model Context Protocol (MCP) server for interacting with MikroTik RouterOS dev
 ### Using UV (recommended)
 
 ```bash
-cd routeros-mcp
+cd routeros_mcp
 uv sync
 ```
 
 ### Using pip
 
 ```bash
-cd routeros-mcp
+cd routeros_mcp
 pip install -e .
 ```
 
@@ -34,9 +34,8 @@ pip install -e .
 ### Device Configuration
 
 Create a `devices.yaml` file in one of these locations:
-- `~/.config/routeros-mcp/devices.yaml`
-- `./devices.yaml`
-- Or specify with `ROUTEROS_DEVICES_CONFIG` environment variable
+- `etc/devices.yaml` (in the package directory)
+- Or specify a custom path with `ROUTEROS_DEVICES_CONFIG` environment variable
 
 Example `devices.yaml`:
 
@@ -59,7 +58,7 @@ devices:
     private_key: null
 ```
 
-See `examples/devices.yaml.example` for a complete example.
+See `etc/devices.yaml.example` for a complete example.
 
 ### Environment Variables (Optional)
 
@@ -104,7 +103,7 @@ Add to your Claude Desktop configuration (`~/Library/Application Support/Claude/
 }
 ```
 
-See `claude_desktop_config_example.json` for more options.
+See `etc/claude_desktop_config_example.json` for more options.
 
 ### Command Line
 
@@ -263,8 +262,8 @@ routeros-mcp/
 ├── LICENSE
 ├── .env.example
 ├── .gitignore
-├── claude_desktop_config_example.json
-├── examples/
+├── etc/
+│   ├── claude_desktop_config_example.json
 │   └── devices.yaml.example
 └── src/
     └── routeros_mcp/
