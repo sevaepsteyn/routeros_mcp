@@ -76,18 +76,9 @@ class Settings(BaseSettings):
         if self.devices_config_path:
             return Path(self.devices_config_path)
 
-        # Try user config directory
-        user_config = Path.home() / '.config' / 'routeros-mcp' / 'devices.yaml'
-        if user_config.exists():
-            return user_config
-
-        # Try current directory
-        local_config = Path('./devices.yaml')
-        if local_config.exists():
-            return local_config
-
-        # Default to user config path
-        return user_config
+        # Use etc/ directory relative to package location
+        package_dir = Path(__file__).parent.parent.parent
+        return package_dir / 'etc' / 'devices.yaml'
 
 
 class DeviceConfig:
