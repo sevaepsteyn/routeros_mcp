@@ -447,9 +447,9 @@ def _routeros_ping(device_name: str, address: str, count: int = 4, size: int | N
 
 # MCP Tool wrappers
 @mcp.tool()
-def routeros_list_devices() -> List[Dict[str, Any]]:
+def list_devices() -> List[Dict[str, Any]]:
     """List all RouterOS devices from configuration
-    
+
     Returns:
         List of devices with their connection details
     """
@@ -457,13 +457,13 @@ def routeros_list_devices() -> List[Dict[str, Any]]:
 
 
 @mcp.tool()
-def routeros_command(
+def command(
     device_name: str,
     command: str,
     parameters_json: str | None = None
 ) -> Dict[str, Any]:
     """Execute a RouterOS API command
-    
+
     Args:
         device_name: Device name from configuration
         command: RouterOS API path (e.g., '/system/resource/print')
@@ -474,9 +474,9 @@ def routeros_command(
 
 
 @mcp.tool()
-def routeros_system_info(device_name: str) -> Dict[str, Any]:
+def system_info(device_name: str) -> Dict[str, Any]:
     """Get system information and resource usage
-    
+
     Args:
         device_name: Device name from configuration
     """
@@ -484,9 +484,9 @@ def routeros_system_info(device_name: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def routeros_interfaces(device_name: str, include_disabled: bool = False) -> Dict[str, Any]:
+def interfaces(device_name: str, include_disabled: bool = False) -> Dict[str, Any]:
     """List network interfaces with status
-    
+
     Args:
         device_name: Device name from configuration
         include_disabled: Include disabled interfaces
@@ -495,9 +495,9 @@ def routeros_interfaces(device_name: str, include_disabled: bool = False) -> Dic
 
 
 @mcp.tool()
-def routeros_ip_addresses(device_name: str) -> Dict[str, Any]:
+def ip_addresses(device_name: str) -> Dict[str, Any]:
     """List IP addresses configured on interfaces
-    
+
     Args:
         device_name: Device name from configuration
     """
@@ -505,9 +505,9 @@ def routeros_ip_addresses(device_name: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def routeros_ip_routes(device_name: str, only_active: bool = True) -> Dict[str, Any]:
+def ip_routes(device_name: str, only_active: bool = True) -> Dict[str, Any]:
     """List IP routing table entries
-    
+
     Args:
         device_name: Device name from configuration
         only_active: Filter to only active routes
@@ -516,9 +516,9 @@ def routeros_ip_routes(device_name: str, only_active: bool = True) -> Dict[str, 
 
 
 @mcp.tool()
-def routeros_bridges(device_name: str) -> Dict[str, Any]:
+def bridges(device_name: str) -> Dict[str, Any]:
     """List Layer 2 bridge configurations
-    
+
     Args:
         device_name: Device name from configuration
     """
@@ -526,9 +526,9 @@ def routeros_bridges(device_name: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def routeros_neighbors(device_name: str) -> Dict[str, Any]:
+def neighbors(device_name: str) -> Dict[str, Any]:
     """List discovered network neighbors via CDP/LLDP
-    
+
     Args:
         device_name: Device name from configuration
     """
@@ -536,9 +536,9 @@ def routeros_neighbors(device_name: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def routeros_logs(device_name: str, topics: str | None = None, limit: int = 100, offset: int = 0) -> Dict[str, Any]:
+def logs(device_name: str, topics: str | None = None, limit: int = 100, offset: int = 0) -> Dict[str, Any]:
     """Get logs from a RouterOS device with pagination
-    
+
     Args:
         device_name: Device name from configuration
         topics: Comma-separated regex patterns to search for
@@ -548,14 +548,14 @@ def routeros_logs(device_name: str, topics: str | None = None, limit: int = 100,
     topic_list = None
     if topics:
         topic_list = [t.strip() for t in topics.split(',')]
-    
+
     return _routeros_logs(device_name, topic_list, limit, offset)
 
 
 @mcp.tool()
-def routeros_config(device_name: str) -> Dict[str, Any]:
+def config(device_name: str) -> Dict[str, Any]:
     """Get full configuration export from device
-    
+
     Args:
         device_name: Device name from configuration
     """
@@ -563,8 +563,8 @@ def routeros_config(device_name: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
-def routeros_ping(device_name: str, address: str, count: int = 4, size: int | None = None,
-                  interval: float | None = None, timeout: int | None = None) -> Dict[str, Any]:
+def ping(device_name: str, address: str, count: int = 4, size: int | None = None,
+         interval: float | None = None, timeout: int | None = None) -> Dict[str, Any]:
     """Execute ping from a RouterOS device
     
     Args:

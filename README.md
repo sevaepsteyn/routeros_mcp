@@ -119,43 +119,43 @@ python -m routeros_mcp
 
 ### Device Management
 
-- `routeros_list_devices()` - List all configured RouterOS devices
-- `routeros_system_info(device_name)` - Get system information (CPU, memory, uptime, version, etc.)
+- `list_devices()` - List all configured RouterOS devices
+- `system_info(device_name)` - Get system information (CPU, memory, uptime, version, etc.)
 
 ### Network Information
 
-- `routeros_interfaces(device_name, include_disabled)` - List network interfaces with status
-- `routeros_ip_addresses(device_name)` - List IP addresses configured on interfaces
-- `routeros_ip_routes(device_name, only_active)` - List routing table entries
-- `routeros_neighbors(device_name)` - List discovered neighbors (CDP/LLDP)
-- `routeros_bridges(device_name)` - List Layer 2 bridge configurations
+- `interfaces(device_name, include_disabled)` - List network interfaces with status
+- `ip_addresses(device_name)` - List IP addresses configured on interfaces
+- `ip_routes(device_name, only_active)` - List routing table entries
+- `neighbors(device_name)` - List discovered neighbors (CDP/LLDP)
+- `bridges(device_name)` - List Layer 2 bridge configurations
 
 ### Monitoring
 
-- `routeros_logs(device_name, topics, limit, offset)` - Get device logs with pagination and filtering
+- `logs(device_name, topics, limit, offset)` - Get device logs with pagination and filtering
 
 ### Configuration & Diagnostics
 
-- `routeros_config(device_name)` - Get full configuration export (with automatic SSH fallback)
-- `routeros_ping(device_name, address, count, size, interval, timeout)` - Execute ping from device
+- `config(device_name)` - Get full configuration export (with automatic SSH fallback)
+- `ping(device_name, address, count, size, interval, timeout)` - Execute ping from device
 
 ### Advanced
 
-- `routeros_command(device_name, command, parameters_json)` - Execute any RouterOS API command
+- `command(device_name, command, parameters_json)` - Execute any RouterOS API command
 
 ## Tool Examples
 
 ### List Devices
 
 ```
-Tool: routeros_list_devices
+Tool: list_devices
 Returns: [{"name": "core-gw", "hostname": "192.168.1.1", ...}]
 ```
 
 ### Get System Information
 
 ```
-Tool: routeros_system_info
+Tool: system_info
 Parameters:
   - device_name: "core-gw"
 Returns: {"success": true, "info": {"version": "7.12", "uptime": "2w3d", ...}}
@@ -164,7 +164,7 @@ Returns: {"success": true, "info": {"version": "7.12", "uptime": "2w3d", ...}}
 ### Get Filtered Logs
 
 ```
-Tool: routeros_logs
+Tool: logs
 Parameters:
   - device_name: "core-gw"
   - topics: "ospf,error"  # Comma-separated regex patterns
@@ -176,7 +176,7 @@ Returns: {"logs": [...], "total_available": 150, "total_returned": 20}
 ### Execute Custom API Command
 
 ```
-Tool: routeros_command
+Tool: command
 Parameters:
   - device_name: "core-gw"
   - command: "/ip/firewall/filter/print"
@@ -187,7 +187,7 @@ Returns: {"success": true, "result": [...]}
 ### Ping from Router
 
 ```
-Tool: routeros_ping
+Tool: ping
 Parameters:
   - device_name: "core-gw"
   - address: "8.8.8.8"
