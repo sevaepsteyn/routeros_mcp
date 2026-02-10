@@ -75,6 +75,9 @@ ROUTEROS_CONNECTION_ORDER=api,api_ssl,ssh
 # Path to devices.yaml
 ROUTEROS_DEVICES_CONFIG=/path/to/devices.yaml
 
+# MCP transport: stdio, sse, streamable-http (default: stdio)
+ROUTEROS_TRANSPORT=stdio
+
 # Logging level
 ROUTEROS_LOG_LEVEL=INFO
 ```

@@ -49,7 +49,7 @@ def main():
         sys.exit(1)
 
     try:
-        mcp.run()
+        mcp.run(transport=settings.transport)
     except KeyboardInterrupt:
         logger.info("Server stopped by user")
         sys.exit(0)
