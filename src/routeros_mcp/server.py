@@ -10,6 +10,7 @@ import re
 import socket
 
 from fastmcp import FastMCP
+from starlette.responses import PlainTextResponse
 from .settings import settings, DeviceManager
 from .client import RouterOSClient
 import routeros_api
@@ -17,6 +18,11 @@ import routeros_api
 
 # Create MCP server instance
 mcp = FastMCP("RouterOS MCP Server")
+
+
+@mcp.custom_route("/health", methods=["GET"])
+async def health(request):
+    return PlainTextResponse("OK")
 
 # Initialize device manager (will be loaded on first access)
 _device_manager = None

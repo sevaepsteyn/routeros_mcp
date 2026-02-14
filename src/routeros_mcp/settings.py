@@ -1,6 +1,6 @@
 """Configuration settings for RouterOS MCP server."""
 
-from typing import Optional, List, Dict, Any
+from typing import Literal, Optional, List, Dict, Any
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator
@@ -53,6 +53,13 @@ class Settings(BaseSettings):
         None,
         description="Path to devices.yaml file",
         alias="ROUTEROS_DEVICES_CONFIG"
+    )
+
+    # Server settings
+    transport: Literal["stdio", "sse", "streamable-http"] = Field(
+        "stdio",
+        description="MCP transport type",
+        alias="ROUTEROS_TRANSPORT"
     )
 
     # Logging settings
