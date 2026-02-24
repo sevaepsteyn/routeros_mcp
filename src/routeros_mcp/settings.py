@@ -92,6 +92,7 @@ class DeviceConfig:
         self.disabled = data.get('disabled', False)
         self.fallback_ip = data.get('fallback_ip')
         self.private_key = data.get('private_key')
+        self.comment = data.get('comment')
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -101,7 +102,8 @@ class DeviceConfig:
             'username': self.username,
             'disabled': self.disabled,
             'fallback_ip': self.fallback_ip,
-            'has_private_key': bool(self.private_key)
+            'has_private_key': bool(self.private_key),
+            'comment': self.comment,
         }
 
 
