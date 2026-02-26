@@ -1,0 +1,14 @@
+name: dust
+services:
+  routeros-mcp:
+    build: .
+    restart: unless-stopped
+    volumes:
+      - ./etc/devices.yaml:/app/etc/devices.yaml:ro
+    networks:
+      - avr
+
+networks:
+  avr:
+    external: true
+    name: avr
