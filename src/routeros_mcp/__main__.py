@@ -1,6 +1,7 @@
 """Main entry point for RouterOS MCP server."""
 
 import logging
+import os
 import sys
 
 from routeros_mcp.server import mcp
@@ -48,8 +49,15 @@ def main():
         logger.error(f"Error loading device configuration: {e}", exc_info=True)
         sys.exit(1)
 
+    transport = os.environ.get("MCP_TRANSPORT", "stdio")
+    port = int(os.environ.get("MCP_PORT", "8000"))
+
     try:
-        mcp.run()
+        if transport == "streamable-http":
+            logger.info(f"Running with streamable-http transport on port {port}")
+            mcp.run(transport="streamable-http", host="0.0.0.0", port=port)
+        else:
+            mcp.run()
     except KeyboardInterrupt:
         logger.info("Server stopped by user")
         sys.exit(0)
