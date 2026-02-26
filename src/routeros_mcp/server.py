@@ -1,15 +1,14 @@
-"""MCP Server for RouterOS API access
-
-This MCP server provides access to RouterOS devices through both API and SSH connections.
-"""
+"""MCP Server for RouterOS API access."""
 
 import asyncio
-from typing import Dict, List, Any
+from typing import Annotated, Dict, List, Any, Optional
 import json
 import re
 import socket
 
 from fastmcp import FastMCP
+from pydantic import Field
+
 from .settings import settings, DeviceManager
 from .client import RouterOSClient
 import routeros_api
@@ -35,13 +34,13 @@ def load_device_connection(device_name: str) -> Dict[str, Any] | None:
     """Load device connection information"""
     device_manager = get_device_manager()
     device = device_manager.get_device(device_name)
-    
+
     if not device:
         return None
-    
+
     if device.disabled:
         return None
-    
+
     # Use fallback_ip if hostname DNS resolution fails
     hostname = device.hostname
     if device.fallback_ip:
@@ -49,7 +48,7 @@ def load_device_connection(device_name: str) -> Dict[str, Any] | None:
             socket.gethostbyname(device.hostname)
         except socket.gaierror:
             hostname = device.fallback_ip
-    
+
     return {
         'hostname': hostname,
         'username': device.username,
@@ -63,7 +62,7 @@ def get_api_connection(hostname: str, username: str, password: str, use_ssl: boo
     """Get RouterOS API connection"""
     if port is None:
         port = settings.routeros_api_ssl_port if use_ssl else settings.routeros_api_port
-    
+
     connection = routeros_api.RouterOsApiPool(
         hostname,
         username=username,
@@ -95,10 +94,10 @@ def _list_routeros_devices() -> List[Dict[str, Any]]:
     """List all RouterOS devices"""
     device_manager = get_device_manager()
     devices = []
-    
+
     for device in device_manager.list_all_devices():
         devices.append(device.to_dict())
-    
+
     return devices
 
 
@@ -111,7 +110,7 @@ def _routeros_command(
     conn_info = load_device_connection(device_name)
     if not conn_info:
         return {'error': f'Device {device_name} not found or disabled'}
-    
+
     try:
         connection = get_api_connection(
             conn_info['hostname'],
@@ -119,16 +118,16 @@ def _routeros_command(
             conn_info['password']
         )
         api = connection.get_api()
-        
+
         # Get the resource path
         resource_path = command
         for operation in ['/print', '/add', '/set', '/remove', '/get']:
             if resource_path.endswith(operation):
                 resource_path = resource_path[:-len(operation)]
                 break
-        
+
         resource = api.get_resource(resource_path)
-        
+
         # Execute command
         if command.endswith('/print'):
             result = resource.get(**(parameters or {}))
@@ -140,16 +139,16 @@ def _routeros_command(
             result = resource.remove(**(parameters or {}))
         else:
             result = resource.get(**(parameters or {}))
-        
+
         connection.disconnect()
-        
+
         return {
             'success': True,
             'device': device_name,
             'command': command,
             'result': result
         }
-        
+
     except Exception as e:
         return {
             'success': False,
@@ -162,7 +161,7 @@ def _routeros_command(
 def _routeros_system_info(device_name: str) -> Dict[str, Any]:
     """Get system information from a RouterOS device"""
     result = _routeros_command(device_name, '/system/resource/print')
-    
+
     if result.get('success') and result.get('result'):
         info = result['result'][0] if isinstance(result['result'], list) else result['result']
         return {
@@ -181,7 +180,7 @@ def _routeros_system_info(device_name: str) -> Dict[str, Any]:
                 'storage_total': _format_bytes(info.get('total-hdd-space', 0))
             }
         }
-    
+
     return result
 
 
@@ -189,7 +188,7 @@ def _routeros_interfaces(device_name: str, include_disabled: bool = False) -> Di
     """List interfaces on a RouterOS device"""
     parameters = {} if include_disabled else {'disabled': 'false'}
     result = _routeros_command(device_name, '/interface/print', parameters)
-    
+
     if result.get('success') and result.get('result'):
         interfaces = []
         for iface in result['result']:
@@ -201,20 +200,20 @@ def _routeros_interfaces(device_name: str, include_disabled: bool = False) -> Di
                 'running': iface.get('running', 'false') == 'true',
                 'comment': iface.get('comment', '')
             })
-        
+
         return {
             'success': True,
             'device': device_name,
             'interfaces': interfaces
         }
-    
+
     return result
 
 
 def _routeros_ip_addresses(device_name: str) -> Dict[str, Any]:
     """List IP addresses on a RouterOS device"""
     result = _routeros_command(device_name, '/ip/address/print')
-    
+
     if result.get('success') and result.get('result'):
         addresses = []
         for addr in result['result']:
@@ -226,26 +225,26 @@ def _routeros_ip_addresses(device_name: str) -> Dict[str, Any]:
                 'dynamic': addr.get('dynamic', 'false') == 'true',
                 'comment': addr.get('comment', '')
             })
-        
+
         return {
             'success': True,
             'device': device_name,
             'ip_addresses': addresses
         }
-    
+
     return result
 
 
 def _routeros_routes(device_name: str, only_active: bool = True) -> Dict[str, Any]:
     """List routes on a RouterOS device"""
     result = _routeros_command(device_name, '/ip/route/print')
-    
+
     if result.get('success') and result.get('result'):
         routes = []
         for route in result['result']:
             if only_active and route.get('active', 'false') != 'true':
                 continue
-                
+
             routes.append({
                 'dst_address': route.get('dst-address'),
                 'gateway': route.get('gateway'),
@@ -257,20 +256,20 @@ def _routeros_routes(device_name: str, only_active: bool = True) -> Dict[str, An
                 'static': route.get('static', 'false') == 'true',
                 'comment': route.get('comment', '')
             })
-        
+
         return {
             'success': True,
             'device': device_name,
             'routes': routes
         }
-    
+
     return result
 
 
 def _routeros_neighbors(device_name: str) -> Dict[str, Any]:
     """List discovered neighbors on a RouterOS device"""
     result = _routeros_command(device_name, '/ip/neighbor/print')
-    
+
     if result.get('success') and result.get('result'):
         neighbors = []
         for neighbor in result['result']:
@@ -283,20 +282,20 @@ def _routeros_neighbors(device_name: str) -> Dict[str, Any]:
                 'ip_address': neighbor.get('address'),
                 'uptime': neighbor.get('uptime')
             })
-        
+
         return {
             'success': True,
             'device': device_name,
             'neighbors': neighbors
         }
-    
+
     return result
 
 
 def _routeros_bridges(device_name: str) -> Dict[str, Any]:
     """List bridges on a RouterOS device"""
     result = _routeros_command(device_name, '/interface/bridge/print')
-    
+
     if result.get('success') and result.get('result'):
         bridges = []
         for bridge in result['result']:
@@ -309,31 +308,31 @@ def _routeros_bridges(device_name: str) -> Dict[str, Any]:
                 'arp': bridge.get('arp'),
                 'comment': bridge.get('comment', '')
             })
-        
+
         return {
             'success': True,
             'device': device_name,
             'bridges': bridges
         }
-    
+
     return result
 
 
 def _routeros_logs(device_name: str, topics: List[str] | None = None, limit: int = 100, offset: int = 0) -> Dict[str, Any]:
     """Get logs from a RouterOS device with pagination"""
     result = _routeros_command(device_name, '/log/print', {})
-    
+
     if result.get('success') and result.get('result'):
         logs = []
         result_list = result['result'] if isinstance(result['result'], list) else [result['result']]
-        
+
         # Apply client-side filtering if topics specified
         if topics:
             filtered_list = []
             for entry in result_list:
                 entry_topics = entry.get('topics', '')
                 entry_message = entry.get('message', '')
-                
+
                 for pattern in topics:
                     try:
                         if pattern.startswith('^(?!'):
@@ -342,34 +341,34 @@ def _routeros_logs(device_name: str, topics: List[str] | None = None, limit: int
                                 filtered_list.append(entry)
                                 break
                         else:
-                            if (re.search(pattern, entry_topics, re.IGNORECASE) or 
+                            if (re.search(pattern, entry_topics, re.IGNORECASE) or
                                 re.search(pattern, entry_message, re.IGNORECASE)):
                                 filtered_list.append(entry)
                                 break
                     except re.error:
                         pattern_lower = pattern.lower()
-                        if (pattern_lower in entry_topics.lower() or 
+                        if (pattern_lower in entry_topics.lower() or
                             pattern_lower in entry_message.lower()):
                             filtered_list.append(entry)
                             break
             result_list = filtered_list
-        
+
         # Reverse to show newest first
         result_list.reverse()
-        
+
         # Apply pagination
         total_filtered = len(result_list)
         start_idx = offset
         end_idx = offset + limit if limit > 0 else total_filtered
         paginated_results = result_list[start_idx:end_idx]
-        
+
         for entry in paginated_results:
             logs.append({
                 'time': entry.get('time'),
                 'topics': entry.get('topics'),
                 'message': entry.get('message')
             })
-        
+
         return {
             'success': True,
             'device': device_name,
@@ -379,7 +378,7 @@ def _routeros_logs(device_name: str, topics: List[str] | None = None, limit: int
             'offset': offset,
             'limit': limit
         }
-    
+
     return result
 
 
@@ -388,16 +387,16 @@ def _routeros_config(device_name: str) -> Dict[str, Any]:
     conn_info = load_device_connection(device_name)
     if not conn_info:
         return {'error': f'Device {device_name} not found or disabled'}
-    
+
     client = RouterOSClient(
         hostname=conn_info['hostname'],
         username=conn_info['username'],
         password=conn_info['password'],
         private_key=conn_info.get('private_key')
     )
-    
+
     success, result = client.export_config()
-    
+
     if success:
         return {
             'success': True,
@@ -420,16 +419,16 @@ def _routeros_ping(device_name: str, address: str, count: int = 4, size: int | N
     conn_info = load_device_connection(device_name)
     if not conn_info:
         return {'error': f'Device {device_name} not found or disabled'}
-    
+
     client = RouterOSClient(
         hostname=conn_info['hostname'],
         username=conn_info['username'],
         password=conn_info['password'],
         private_key=conn_info.get('private_key')
     )
-    
+
     success, result = client.execute_ping(address, count, size, interval, timeout)
-    
+
     if success:
         return {
             'success': True,
@@ -448,103 +447,65 @@ def _routeros_ping(device_name: str, address: str, count: int = 4, size: int | N
 # MCP Tool wrappers
 @mcp.tool()
 def list_devices() -> List[Dict[str, Any]]:
-    """List all RouterOS devices from configuration
-
-    Returns:
-        List of devices with their connection details
-    """
+    """List all configured RouterOS devices."""
     return _list_routeros_devices()
 
 
 @mcp.tool()
 def command(
     device_name: str,
-    command: str,
-    parameters_json: str | None = None
+    command: Annotated[str, Field(description="API path, e.g. /system/resource/print")],
+    parameters_json: Annotated[str | None, Field(description="JSON string of command parameters")] = None,
 ) -> Dict[str, Any]:
-    """Execute a RouterOS API command
-
-    Args:
-        device_name: Device name from configuration
-        command: RouterOS API path (e.g., '/system/resource/print')
-        parameters_json: JSON string of command parameters
-    """
+    """Execute a RouterOS API command."""
     parameters = json.loads(parameters_json) if parameters_json else None
     return _routeros_command(device_name, command, parameters)
 
 
 @mcp.tool()
 def system_info(device_name: str) -> Dict[str, Any]:
-    """Get system information and resource usage
-
-    Args:
-        device_name: Device name from configuration
-    """
+    """Get system information and resource usage."""
     return _routeros_system_info(device_name)
 
 
 @mcp.tool()
 def interfaces(device_name: str, include_disabled: bool = False) -> Dict[str, Any]:
-    """List network interfaces with status
-
-    Args:
-        device_name: Device name from configuration
-        include_disabled: Include disabled interfaces
-    """
+    """List network interfaces with status."""
     return _routeros_interfaces(device_name, include_disabled)
 
 
 @mcp.tool()
 def ip_addresses(device_name: str) -> Dict[str, Any]:
-    """List IP addresses configured on interfaces
-
-    Args:
-        device_name: Device name from configuration
-    """
+    """List IP addresses on interfaces."""
     return _routeros_ip_addresses(device_name)
 
 
 @mcp.tool()
 def ip_routes(device_name: str, only_active: bool = True) -> Dict[str, Any]:
-    """List IP routing table entries
-
-    Args:
-        device_name: Device name from configuration
-        only_active: Filter to only active routes
-    """
+    """List IP routing table entries."""
     return _routeros_routes(device_name, only_active)
 
 
 @mcp.tool()
 def bridges(device_name: str) -> Dict[str, Any]:
-    """List Layer 2 bridge configurations
-
-    Args:
-        device_name: Device name from configuration
-    """
+    """List Layer 2 bridge configurations."""
     return _routeros_bridges(device_name)
 
 
 @mcp.tool()
 def neighbors(device_name: str) -> Dict[str, Any]:
-    """List discovered network neighbors via CDP/LLDP
-
-    Args:
-        device_name: Device name from configuration
-    """
+    """List discovered network neighbors (CDP/LLDP)."""
     return _routeros_neighbors(device_name)
 
 
 @mcp.tool()
-def logs(device_name: str, topics: str | None = None, limit: int = 100, offset: int = 0) -> Dict[str, Any]:
-    """Get logs from a RouterOS device with pagination
-
-    Args:
-        device_name: Device name from configuration
-        topics: Comma-separated regex patterns to search for
-        limit: Maximum number of log entries to return
-        offset: Number of log entries to skip from most recent
-    """
+def logs(
+    device_name: str,
+    topics: Annotated[str | None, Field(description="Comma-separated regex patterns")] = None,
+    limit: int = 100,
+    offset: int = 0,
+) -> Dict[str, Any]:
+    """Get device logs with optional topic filtering."""
     topic_list = None
     if topics:
         topic_list = [t.strip() for t in topics.split(',')]
@@ -554,27 +515,20 @@ def logs(device_name: str, topics: str | None = None, limit: int = 100, offset: 
 
 @mcp.tool()
 def config(device_name: str) -> Dict[str, Any]:
-    """Get full configuration export from device
-
-    Args:
-        device_name: Device name from configuration
-    """
+    """Get full configuration export."""
     return _routeros_config(device_name)
 
 
 @mcp.tool()
-def ping(device_name: str, address: str, count: int = 4, size: int | None = None,
-         interval: float | None = None, timeout: int | None = None) -> Dict[str, Any]:
-    """Execute ping from a RouterOS device
-    
-    Args:
-        device_name: Device name from configuration
-        address: Target IP or hostname to ping
-        count: Number of packets (max: 10)
-        size: Packet size in bytes
-        interval: Delay between packets in seconds
-        timeout: Per-packet timeout in seconds
-    """
+def ping(
+    device_name: str,
+    address: Annotated[str, Field(description="Target IP or hostname")],
+    count: int = 4,
+    size: Annotated[int | None, Field(description="Packet size in bytes")] = None,
+    interval: Annotated[float | None, Field(description="Delay between packets in seconds")] = None,
+    timeout: Annotated[int | None, Field(description="Per-packet timeout in seconds")] = None,
+) -> Dict[str, Any]:
+    """Execute ping from the device."""
     return _routeros_ping(device_name, address, count, size, interval, timeout)
 
 
